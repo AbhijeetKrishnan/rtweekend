@@ -1,3 +1,8 @@
+use std::io;
+
+use ray_tracing_in_a_weekend::Color;
+use ray_tracing_in_a_weekend::color;
+
 const IMAGE_WIDTH: u64 = 256;
 const IMAGE_HEIGHT: u64 = 256;
 
@@ -7,15 +12,16 @@ fn main() {
     for j in (0..IMAGE_HEIGHT).rev() {
         eprint!("\rScanlines remaining: {j} ");
         for i in 0..IMAGE_WIDTH {
-            let r = (i as f64) / (IMAGE_WIDTH - 1) as f64;
-            let g = (j as f64) / (IMAGE_HEIGHT - 1) as f64;
-            let b = 0.25;
+            let pixel_color: Color = Color::new(
+                (i as f64) / (IMAGE_WIDTH - 1) as f64,
+                (j as f64) / (IMAGE_HEIGHT - 1) as f64,
+                0.25
+            );
 
-            let ir = (255.999 * r) as i64;
-            let ig = (255.999 * g) as i64;
-            let ib = (255.999 * b) as i64;
+            let stdout = io::stdout();
+            let mut handle = stdout.lock();
 
-            print!("{ir} {ig} {ib}\n");
+            color::write_color(&mut handle, pixel_color);
         }
     }
     eprintln!("\nDone");
