@@ -1,30 +1,14 @@
 use std::io;
 
-use rtweekend::{Color, Vec3, Point, Ray};
+use rtweekend::{Color, Vec3, Point, Ray, Hittable, INFINITY, HittableList, Sphere};
 
-pub fn hit_sphere(center: &Point, radius: f64, r: &Ray) -> Option<f64> {
-    let oc = r.origin() - center;
-    let a = r.direction().length_squared();
-    let half_b = Vec3::dot(&oc, r.direction());
-    let c = oc.length_squared() - radius * radius;
-    let discriminant = half_b * half_b - a * c;
-    if discriminant < 0.0 {
-        return None;
-    } else {
-        return Some((-half_b - discriminant.sqrt()) / a);
-    }
-}
-
-pub fn ray_color(r: &Ray) -> Color {
-    let sphere_center = Point::new(0.0, 0.0, -1.0);
-    let t = hit_sphere(&sphere_center, 0.5, r);
-    match t {
-        Some(t) => {
-            let N = r.at(t).unit_vector() - sphere_center;
-            return 0.5 * Color::new(N.x() + 1.0, N.y() + 1.0, N.z() + 1.0);
+pub fn ray_color(r: &Ray, world: &impl Hittable) -> Color {
+    match world.hit(r, 0.0, INFINITY) {
+        Some(rec) => {
+            return 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
         }
         None => ()
-    }
+    };
     let unit_direction: Vec3 = r.direction().unit_vector();
     let t = 0.5 * (unit_direction.y() + 1.0);
     (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
@@ -36,6 +20,11 @@ fn main() {
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
     const IMAGE_WIDTH: u64 = 400;
     const IMAGE_HEIGHT: u64 = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as u64;
+
+    // World
+    let mut world = HittableList::new();
+    world.add(Sphere::new(Point::new(0.0, 0.0, -1.0), 0.5));
+    world.add(Sphere::new(Point::new(0.0, -100.5, -1.0), 100.0));
 
     // Camera
     let viewport_height = 2.0;
@@ -56,7 +45,7 @@ fn main() {
             let u = (i as f64) / (IMAGE_WIDTH - 1) as f64;
             let v = (j as f64) / (IMAGE_HEIGHT - 1) as f64;
             let r = Ray::new(origin, lower_left_corner + u * horizontal + v * vertical - origin);
-            let pixel_color = ray_color(&r);
+            let pixel_color = ray_color(&r, &world);
 
             let stdout = io::stdout();
             let mut handle = stdout.lock();

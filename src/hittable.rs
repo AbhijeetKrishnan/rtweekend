@@ -2,13 +2,13 @@ use crate::{Ray, Vec3, Point};
 
 pub struct HitRecord {
     p: Point,
-    normal: Vec3,
+    pub normal: Vec3,
     t: f64,
     front_face: bool,
 }
 
 impl HitRecord {
-    pub fn set_face_normal(r: &Ray, outward_normal: Vec3) -> (bool, Vec3) {
+    pub fn get_face_normal(r: &Ray, outward_normal: Vec3) -> (bool, Vec3) {
         let front_face = Vec3::dot(r.direction(), &outward_normal) < 0.0;
         let normal = 
             if front_face {
@@ -63,13 +63,50 @@ impl Hittable for Sphere {
         let t = root;
         let p = r.at(t);
         let outward_normal = (p - self.center) / self.radius;
-        let (front_face, normal) = HitRecord::set_face_normal(r, outward_normal);
-        
+        let (front_face, normal) = HitRecord::get_face_normal(r, outward_normal);
+
         Some(HitRecord {
             p,
             normal,
             t,
             front_face,
         })
+    }
+}
+
+pub struct HittableList {
+    objects: Vec<Box<dyn Hittable>>,
+}
+
+impl<'a> HittableList {
+    
+    pub fn new() -> HittableList {
+        HittableList {
+            objects: vec![],
+        }
+    }
+
+    pub fn add(&mut self, object: impl Hittable + 'static) { // TODO: is 'static necessary? What are the exact semantics?
+        self.objects.push(Box::new(object));
+    }
+
+    pub fn clear(&mut self) {
+        self.objects.clear();
+    }
+}
+
+impl Hittable for HittableList {
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+        let mut temp_rec: Option<HitRecord> = None;
+        let mut closest_so_far = t_max;
+
+        for object in self.objects.iter() {
+            match object.as_ref().hit(r, t_min, closest_so_far) {
+                Some(rec) =>  { closest_so_far = rec.t; temp_rec = Some(rec); }
+                None => ()
+            }
+        }
+
+        temp_rec
     }
 }
