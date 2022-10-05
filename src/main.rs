@@ -2,18 +2,28 @@ use std::io;
 
 use rtweekend::{Color, color, Vec3, Point, Ray};
 
-pub fn hit_sphere(center: &Point, radius: f64, r: &Ray) -> bool {
+pub fn hit_sphere(center: &Point, radius: f64, r: &Ray) -> Option<f64> {
     let oc = r.origin() - center;
     let a = Vec3::dot(r.direction(), r.direction());
     let b = 2.0 * Vec3::dot(&oc, r.direction());
     let c = Vec3::dot(&oc, &oc) - radius * radius;
     let discriminant = b * b - 4.0 * a * c;
-    discriminant > 0.0
+    if discriminant < 0.0 {
+        return None;
+    } else {
+        return Some((-b - discriminant.sqrt()) / (2.0 * a));
+    }
 }
 
 pub fn ray_color(r: &Ray) -> Color {
-    if hit_sphere(&Vec3::new(0.0, 0.0, -1.0), 0.5, r) {
-        return Color::new(1.0, 0.0, 0.0);
+    let sphere_center = Point::new(0.0, 0.0, -1.0);
+    let t = hit_sphere(&sphere_center, 0.5, r);
+    match t {
+        Some(t) => {
+            let N = r.at(t).unit_vector() - sphere_center;
+            return 0.5 * Color::new(N.x() + 1.0, N.y() + 1.0, N.z() + 1.0);
+        }
+        None => ()
     }
     let unit_direction: Vec3 = r.direction().unit_vector();
     let t = 0.5 * (unit_direction.y() + 1.0);
