@@ -57,7 +57,7 @@ impl Vec3 {
     }
 }
 
-impl_op_ex!(- |v: Vec3| -> Vec3 { Vec3::new(-v.x, -v.y, -v.z) });
+impl_op_ex!(- |v: &Vec3| -> Vec3 { Vec3::new(-v.x, -v.y, -v.z) });
 
 impl ops::Index<u8> for Vec3 {
     type Output = f64;
