@@ -1,6 +1,6 @@
 use std::io;
 
-use ray_tracing_in_a_weekend::{Color, color, Vec3, Point, Ray};
+use rtweekend::{Color, color, Vec3, Point, Ray};
 
 pub fn hit_sphere(center: &Point, radius: f64, r: &Ray) -> bool {
     let oc = r.origin() - center;
