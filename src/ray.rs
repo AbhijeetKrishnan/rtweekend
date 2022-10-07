@@ -1,5 +1,4 @@
-use crate::{Vec3, Point};
-
+use crate::{Point, Vec3};
 
 pub struct Ray {
     orig: Point,

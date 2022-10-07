@@ -1,6 +1,6 @@
-use std::ops;
-use std::fmt;
 use std::default::Default;
+use std::fmt;
+use std::ops;
 
 #[derive(Default, Copy, Clone, PartialEq)]
 pub struct Vec3 {
@@ -35,9 +35,7 @@ impl Vec3 {
     }
 
     pub fn dot(self: &Self, rhs: &Self) -> f64 {
-        self.x * rhs.x +
-            self.y * rhs.y +
-            self.z * rhs.z
+        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
     }
 
     pub fn cross(self: &Self, rhs: &Self) -> Self {
@@ -52,12 +50,12 @@ impl Vec3 {
         Self {
             x: self.x,
             y: self.y,
-            z: self.z
+            z: self.z,
         } / self.length()
     }
 }
 
-impl_op_ex!(- |v: &Vec3| -> Vec3 { Vec3::new(-v.x, -v.y, -v.z) });
+impl_op_ex!(-|v: &Vec3| -> Vec3 { Vec3::new(-v.x, -v.y, -v.z) });
 
 impl ops::Index<u8> for Vec3 {
     type Output = f64;
@@ -66,7 +64,7 @@ impl ops::Index<u8> for Vec3 {
             0 => &self.x,
             1 => &self.y,
             2 => &self.z,
-            _ => panic!("Invalid index")
+            _ => panic!("Invalid index"),
         }
     }
 }
@@ -77,7 +75,7 @@ impl ops::IndexMut<u8> for Vec3 {
             0 => &mut self.x,
             1 => &mut self.y,
             2 => &mut self.z,
-            _ => panic!("Invalid index")
+            _ => panic!("Invalid index"),
         }
     }
 }
@@ -94,8 +92,12 @@ impl fmt::Display for Vec3 {
 }
 
 impl_op_ex!(+ |lhs: &Vec3, rhs: &Vec3| -> Vec3 { Vec3::new(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z) });
-impl_op_ex!(- |lhs: &Vec3, rhs: &Vec3| -> Vec3 { Vec3::new(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z) });
-impl_op_ex!(* |lhs: &Vec3, rhs: &Vec3| -> Vec3 { Vec3::new(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z) });
-impl_op_ex!(* |lhs: &Vec3, rhs: f64| -> Vec3 { Vec3::new(lhs.x * rhs, lhs.y * rhs, lhs.z * rhs) });
-impl_op_ex!(* |lhs: f64, rhs: &Vec3| -> Vec3 { Vec3::new(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z) });
+impl_op_ex!(-|lhs: &Vec3, rhs: &Vec3| -> Vec3 {
+    Vec3::new(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z)
+});
+impl_op_ex!(*|lhs: &Vec3, rhs: &Vec3| -> Vec3 {
+    Vec3::new(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z)
+});
+impl_op_ex!(*|lhs: &Vec3, rhs: f64| -> Vec3 { Vec3::new(lhs.x * rhs, lhs.y * rhs, lhs.z * rhs) });
+impl_op_ex!(*|lhs: f64, rhs: &Vec3| -> Vec3 { Vec3::new(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z) });
 impl_op_ex!(/ |lhs: &Vec3, rhs: f64| -> Vec3 { Vec3::new(lhs.x / rhs, lhs.y / rhs, lhs.z / rhs) });

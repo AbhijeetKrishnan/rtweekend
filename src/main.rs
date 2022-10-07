@@ -1,13 +1,13 @@
 use std::io;
 
-use rtweekend::{Color, Vec3, Point, Ray, Hittable, INFINITY, HittableList, Sphere};
+use rtweekend::{Color, Hittable, HittableList, Point, Ray, Sphere, Vec3, INFINITY};
 
 pub fn ray_color(r: &Ray, world: &impl Hittable) -> Color {
     match world.hit(r, 0.0, INFINITY) {
         Some(rec) => {
             return 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
         }
-        None => ()
+        None => (),
     };
     let unit_direction: Vec3 = r.direction().unit_vector();
     let t = 0.5 * (unit_direction.y() + 1.0);
@@ -15,7 +15,6 @@ pub fn ray_color(r: &Ray, world: &impl Hittable) -> Color {
 }
 
 fn main() {
-    
     // Image
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
     const IMAGE_WIDTH: u64 = 400;
@@ -34,7 +33,8 @@ fn main() {
     let origin = Point::new(0.0, 0.0, 0.0);
     let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
     let vertical = Vec3::new(0.0, viewport_height, 0.0);
-    let lower_left_corner = origin - (horizontal / 2.0) - (vertical / 2.0) - Vec3::new(0.0, 0.0, focal_length);
+    let lower_left_corner =
+        origin - (horizontal / 2.0) - (vertical / 2.0) - Vec3::new(0.0, 0.0, focal_length);
 
     // Render
     print!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n");
@@ -44,7 +44,10 @@ fn main() {
         for i in 0..IMAGE_WIDTH {
             let u = (i as f64) / (IMAGE_WIDTH - 1) as f64;
             let v = (j as f64) / (IMAGE_HEIGHT - 1) as f64;
-            let r = Ray::new(origin, lower_left_corner + u * horizontal + v * vertical - origin);
+            let r = Ray::new(
+                origin,
+                lower_left_corner + u * horizontal + v * vertical - origin,
+            );
             let pixel_color = ray_color(&r, &world);
 
             let stdout = io::stdout();

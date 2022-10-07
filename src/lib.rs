@@ -1,20 +1,21 @@
-#[macro_use] extern crate impl_ops;
+#[macro_use]
+extern crate impl_ops;
 
 mod vec3;
-pub use vec3::Vec3 as Vec3;
+pub use vec3::Vec3;
 pub use vec3::Vec3 as Color;
 pub use vec3::Vec3 as Point;
 
 mod ray;
-pub use ray::Ray as Ray;
+pub use ray::Ray;
 
 mod color;
 
 mod hittable;
-pub use hittable::HitRecord as HitRecord;
-pub use hittable::Hittable as Hittable;
-pub use hittable::HittableList as HittableList;
-pub use hittable::Sphere as Sphere;
+pub use hittable::HitRecord;
+pub use hittable::Hittable;
+pub use hittable::HittableList;
+pub use hittable::Sphere;
 
 pub const INFINITY: f64 = std::f64::INFINITY;
 pub const PI: f64 = 3.1415926535897932385;

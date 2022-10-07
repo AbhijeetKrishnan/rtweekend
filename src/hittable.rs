@@ -1,4 +1,4 @@
-use crate::{Ray, Vec3, Point};
+use crate::{Point, Ray, Vec3};
 
 pub struct HitRecord {
     p: Point,
@@ -10,12 +10,11 @@ pub struct HitRecord {
 impl HitRecord {
     pub fn get_face_normal(r: &Ray, outward_normal: Vec3) -> (bool, Vec3) {
         let front_face = Vec3::dot(r.direction(), &outward_normal) < 0.0;
-        let normal = 
-            if front_face {
-                outward_normal
-            } else {
-                -outward_normal
-            };
+        let normal = if front_face {
+            outward_normal
+        } else {
+            -outward_normal
+        };
         (front_face, normal)
     }
 }
@@ -78,15 +77,13 @@ pub struct HittableList {
     objects: Vec<Box<dyn Hittable>>,
 }
 
-impl<'a> HittableList {
-    
+impl HittableList {
     pub fn new() -> HittableList {
-        HittableList {
-            objects: vec![],
-        }
+        HittableList { objects: vec![] }
     }
 
-    pub fn add(&mut self, object: impl Hittable + 'static) { // TODO: is 'static necessary? What are the exact semantics?
+    pub fn add(&mut self, object: impl Hittable + 'static) {
+        // TODO: is 'static necessary? What are the exact semantics?
         self.objects.push(Box::new(object));
     }
 
@@ -102,8 +99,11 @@ impl Hittable for HittableList {
 
         for object in self.objects.iter() {
             match object.as_ref().hit(r, t_min, closest_so_far) {
-                Some(rec) =>  { closest_so_far = rec.t; temp_rec = Some(rec); }
-                None => ()
+                Some(rec) => {
+                    closest_so_far = rec.t;
+                    temp_rec = Some(rec);
+                }
+                None => (),
             }
         }
 
