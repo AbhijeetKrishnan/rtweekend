@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate impl_ops;
 
+use rand;
+
 mod vec3;
 pub use vec3::Vec3;
 pub use vec3::Vec3 as Color;
@@ -17,9 +19,22 @@ pub use hittable::Hittable;
 pub use hittable::HittableList;
 pub use hittable::Sphere;
 
+mod camera;
+pub use camera::Camera;
+
 pub const INFINITY: f64 = std::f64::INFINITY;
 pub const PI: f64 = 3.1415926535897932385;
 
 pub fn degrees_to_radians(degrees: f64) -> f64 {
     degrees * PI / 180.0
+}
+
+pub fn random_double(min: f64, max: f64) -> f64 {
+    min + (max - min) * rand::random::<f64>()
+}
+
+pub fn clamp(x: f64, min: f64, max: f64) -> f64 {
+    if x < min { return min; }
+    if x > max { return max; }
+    return x;
 }

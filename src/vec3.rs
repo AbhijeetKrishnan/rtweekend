@@ -2,7 +2,7 @@ use std::default::Default;
 use std::fmt;
 use std::ops;
 
-#[derive(Default, Copy, Clone, PartialEq)]
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
 pub struct Vec3 {
     x: f64,
     y: f64,
