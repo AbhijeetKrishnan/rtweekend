@@ -1,4 +1,4 @@
-use crate::{Color, clamp};
+use crate::{clamp, Color};
 use std::io::Write;
 
 impl Color {
@@ -19,7 +19,7 @@ impl Color {
 
         match out.write(format!("{} {} {}\n", ir, ig, ib).as_bytes()) {
             Ok(_) => (),
-            Err(_) => panic!("Error while writing color to ppm file")
+            Err(_) => panic!("Error while writing color to ppm file"),
         }
     }
 }

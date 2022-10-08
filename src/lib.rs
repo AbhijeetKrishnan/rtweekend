@@ -20,7 +20,7 @@ mod camera;
 pub use camera::Camera;
 
 mod material;
-pub use material::{Material, Lambertian, Metal, Dielectric};
+pub use material::{Dielectric, Lambertian, Material, Metal};
 
 pub const INFINITY: f64 = std::f64::INFINITY;
 pub const PI: f64 = 3.1415926535897932385;
@@ -34,7 +34,11 @@ pub fn random_double(min: f64, max: f64) -> f64 {
 }
 
 pub fn clamp(x: f64, min: f64, max: f64) -> f64 {
-    if x < min { return min; }
-    if x > max { return max; }
+    if x < min {
+        return min;
+    }
+    if x > max {
+        return max;
+    }
     return x;
 }

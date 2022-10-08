@@ -1,4 +1,5 @@
-use crate::{Ray, HitRecord, Color, Vec3};
+use num;
+use crate::{Color, HitRecord, Ray, Vec3, random_double};
 
 pub trait Material {
     fn scatter(&self, ray_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)>;
@@ -10,9 +11,7 @@ pub struct Lambertian {
 
 impl Lambertian {
     pub fn new(albedo: Color) -> Lambertian {
-        Lambertian { 
-            albedo,
-        }
+        Lambertian { albedo }
     }
 }
 
@@ -37,10 +36,7 @@ pub struct Metal {
 
 impl Metal {
     pub fn new(albedo: Color, fuzz: f64) -> Metal {
-        Metal {
-            albedo,
-            fuzz,
-        }
+        Metal { albedo, fuzz }
     }
 }
 
@@ -63,23 +59,32 @@ pub struct Dielectric {
 
 impl Dielectric {
     pub fn new(ir: f64) -> Dielectric {
-        Dielectric { 
-            ir ,
-        }
+        Dielectric { ir }
+    }
+
+    fn reflectance(&self, cosine: f64) -> f64 {
+        // Use Schlick's approximation for reflectance
+        let r0 = (1.0 - self.ir) / (1.0 + self.ir);
+        let r0_squared = r0 * r0;
+        r0_squared + (1.0 - r0_squared) * num::pow(1.0 - cosine, 5)
     }
 }
 
 impl Material for Dielectric {
     fn scatter(&self, ray_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
         let attenuation = Color::new(1.0, 1.0, 1.0);
-        let refraction_ratio = if rec.front_face { 1.0 / self.ir } else { self.ir };
+        let refraction_ratio = if rec.front_face {
+            1.0 / self.ir
+        } else {
+            self.ir
+        };
 
         let unit_direction = ray_in.direction().unit_vector();
         let cos_theta = Vec3::dot(&-unit_direction, &rec.normal).min(1.0);
         let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
 
         let cannot_refract = refraction_ratio * sin_theta > 1.0;
-        let direction = if cannot_refract {
+        let direction = if cannot_refract || self.reflectance(cos_theta) > random_double(0.0, 1.0) {
             Vec3::reflect(&unit_direction, &rec.normal)
         } else {
             Vec3::refract(&unit_direction, &rec.normal, refraction_ratio)
