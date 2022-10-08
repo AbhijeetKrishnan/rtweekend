@@ -20,7 +20,7 @@ mod camera;
 pub use camera::Camera;
 
 mod material;
-pub use material::{Material, Lambertian, Metal};
+pub use material::{Material, Lambertian, Metal, Dielectric};
 
 pub const INFINITY: f64 = std::f64::INFINITY;
 pub const PI: f64 = 3.1415926535897932385;

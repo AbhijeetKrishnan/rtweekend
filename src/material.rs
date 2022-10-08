@@ -56,3 +56,36 @@ impl Material for Metal {
         }
     }
 }
+
+pub struct Dielectric {
+    ir: f64,
+}
+
+impl Dielectric {
+    pub fn new(ir: f64) -> Dielectric {
+        Dielectric { 
+            ir ,
+        }
+    }
+}
+
+impl Material for Dielectric {
+    fn scatter(&self, ray_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+        let attenuation = Color::new(1.0, 1.0, 1.0);
+        let refraction_ratio = if rec.front_face { 1.0 / self.ir } else { self.ir };
+
+        let unit_direction = ray_in.direction().unit_vector();
+        let cos_theta = Vec3::dot(&-unit_direction, &rec.normal).min(1.0);
+        let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
+
+        let cannot_refract = refraction_ratio * sin_theta > 1.0;
+        let direction = if cannot_refract {
+            Vec3::reflect(&unit_direction, &rec.normal)
+        } else {
+            Vec3::refract(&unit_direction, &rec.normal, refraction_ratio)
+        };
+
+        let scattered = Ray::new(rec.p, direction);
+        Some((attenuation, scattered))
+    }
+}
