@@ -86,6 +86,15 @@ impl Vec3 {
             -in_unit_sphere
         }
     }
+
+    pub fn near_zero(&self) -> bool {
+        const EPS: f64 = 1e-8;
+        (self.x().abs() < EPS) && (self.y().abs() < EPS) && (self.z().abs() < EPS)
+    }
+
+    pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
+        v - 2.0 * Vec3::dot(v, n) * n
+    }
 }
 
 impl_op_ex!(-|v: &Vec3| -> Vec3 { Vec3::new(-v.x, -v.y, -v.z) });

@@ -1,23 +1,25 @@
-use std::io;
+use std::{io, rc::Rc};
 
-use rtweekend::{Color, Hittable, HittableList, Point, Ray, Sphere, Vec3, INFINITY, Camera, random_double};
+use rtweekend as rt;
 
-pub fn ray_color(r: &Ray, world: &impl Hittable, depth: u64) -> Color {
+pub fn ray_color(r: &rt::Ray, world: &impl rt::Hittable, depth: u64) -> rt::Color {
 
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if depth <= 0 {
-        return Color::new(0.0, 0.0, 0.0);
+        return rt::Color::new(0.0, 0.0, 0.0);
     }
 
-    match world.hit(r, 0.001, INFINITY) {
+    match world.hit(r, 0.001, rt::INFINITY) {
         Some(rec) => {
-            let target = rec.p + rec.normal + Vec3::random_unit_vector();
-            0.5 * ray_color(&Ray::new(rec.p, target - rec.p), world, depth - 1)
+            match rec.mat_ptr.scatter(r, &rec) {
+                Some((attenuation, scattered)) => attenuation * ray_color(&scattered, world, depth - 1),
+                None => rt::Color::new(0.0, 0.0, 0.0),
+            }
         }
         None => {
-            let unit_direction: Vec3 = r.direction().unit_vector();
+            let unit_direction: rt::Vec3 = r.direction().unit_vector();
             let t = 0.5 * (unit_direction.y() + 1.0);
-            (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
+            (1.0 - t) * rt::Color::new(1.0, 1.0, 1.0) + t * rt::Color::new(0.5, 0.7, 1.0)
         }
     }
 }
@@ -31,12 +33,21 @@ fn main() {
     const MAX_DEPTH: u64 = 50;
 
     // World
-    let mut world = HittableList::new();
-    world.add(Sphere::new(Point::new(0.0, 0.0, -1.0), 0.5));
-    world.add(Sphere::new(Point::new(0.0, -100.5, -1.0), 100.0));
+    let mut world = rt::HittableList::new();
+
+    let material_ground = Rc::new(rt::Lambertian::new(rt::Color::new(0.8, 0.8, 0.0)));
+    let material_center = Rc::new(rt::Lambertian::new(rt::Color::new(0.7, 0.3, 0.3)));
+    let material_left = Rc::new(rt::Metal::new(rt::Color::new(0.8, 0.8, 0.8)));
+    let material_right = Rc::new(rt::Metal::new(rt::Color::new(0.8, 0.6, 0.2)));
+
+    world.add(Rc::new(rt::Sphere::new(rt::Point::new(0.0, -100.5, -1.0), 100.0, material_ground)));
+    world.add(Rc::new(rt::Sphere::new(rt::Point::new(0.0, 0.0, -1.0), 0.5, material_center)));
+    world.add(Rc::new(rt::Sphere::new(rt::Point::new(-1.0, 0.0, -1.0), 0.5, material_left)));
+    world.add(Rc::new(rt::Sphere::new(rt::Point::new(1.0, 0.0, -1.0), 0.5, material_right)));
+    
 
     // Camera
-    let cam = Camera::new();
+    let cam = rt::Camera::new();
 
     // Render
     print!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n");
@@ -44,10 +55,10 @@ fn main() {
     for j in (0..IMAGE_HEIGHT).rev() {
         eprint!("\rScanlines remaining: {j} ");
         for i in 0..IMAGE_WIDTH {
-            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+            let mut pixel_color = rt::Color::new(0.0, 0.0, 0.0);
             for _ in 0..SAMPLES_PER_PIXEL {
-                let u = (i as f64 + random_double(0.0, 1.0)) / (IMAGE_WIDTH - 1) as f64;
-                let v = (j as f64 + random_double(0.0, 1.0)) / (IMAGE_HEIGHT - 1) as f64;
+                let u = (i as f64 + rt::random_double(0.0, 1.0)) / (IMAGE_WIDTH - 1) as f64;
+                let v = (j as f64 + rt::random_double(0.0, 1.0)) / (IMAGE_HEIGHT - 1) as f64;
                 let r = cam.get_ray(u, v);
                 pixel_color += ray_color(&r, &world, MAX_DEPTH);
             }

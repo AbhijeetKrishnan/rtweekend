@@ -14,13 +14,13 @@ pub use ray::Ray;
 mod color;
 
 mod hittable;
-pub use hittable::HitRecord;
-pub use hittable::Hittable;
-pub use hittable::HittableList;
-pub use hittable::Sphere;
+pub use hittable::{HitRecord, Hittable, HittableList, Sphere};
 
 mod camera;
 pub use camera::Camera;
+
+mod material;
+pub use material::{Material, Lambertian, Metal};
 
 pub const INFINITY: f64 = std::f64::INFINITY;
 pub const PI: f64 = 3.1415926535897932385;

@@ -1,8 +1,11 @@
-use crate::{Point, Ray, Vec3};
+use std::rc::Rc;
+
+use crate::{Point, Ray, Vec3, Material};
 
 pub struct HitRecord {
     pub p: Point,
     pub normal: Vec3,
+    pub mat_ptr: Rc<dyn Material>,
     t: f64,
     front_face: bool,
 }
@@ -26,13 +29,15 @@ pub trait Hittable {
 pub struct Sphere {
     center: Point,
     radius: f64,
+    mat_ptr: Rc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(cen: Point, r: f64) -> Sphere {
+    pub fn new(cen: Point, r: f64, m: Rc<dyn Material>) -> Sphere {
         Sphere {
             center: cen,
             radius: r,
+            mat_ptr: m,
         }
     }
 }
@@ -67,6 +72,7 @@ impl Hittable for Sphere {
         Some(HitRecord {
             p,
             normal,
+            mat_ptr: Rc::clone(&self.mat_ptr),
             t,
             front_face,
         })
@@ -74,7 +80,7 @@ impl Hittable for Sphere {
 }
 
 pub struct HittableList {
-    objects: Vec<Box<dyn Hittable>>,
+    objects: Vec<Rc<dyn Hittable>>,
 }
 
 impl HittableList {
@@ -82,9 +88,8 @@ impl HittableList {
         HittableList { objects: vec![] }
     }
 
-    pub fn add(&mut self, object: impl Hittable + 'static) {
-        // TODO: is 'static necessary? What are the exact semantics?
-        self.objects.push(Box::new(object));
+    pub fn add(&mut self, object: Rc<dyn Hittable>) {
+        self.objects.push(object);
     }
 
     pub fn clear(&mut self) {

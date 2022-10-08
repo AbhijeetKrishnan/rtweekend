@@ -17,6 +17,9 @@ impl Color {
         let ig = (256.0 * clamp(scaled_g, 0.0, 0.999)) as u8;
         let ib = (256.0 * clamp(scaled_b, 0.0, 0.999)) as u8;
 
-        out.write(format!("{} {} {}\n", ir, ig, ib).as_bytes());
+        match out.write(format!("{} {} {}\n", ir, ig, ib).as_bytes()) {
+            Ok(_) => (),
+            Err(_) => panic!("Error while writing color to ppm file")
+        }
     }
 }
