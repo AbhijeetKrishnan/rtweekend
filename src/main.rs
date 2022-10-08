@@ -37,8 +37,8 @@ fn main() {
 
     let material_ground = Rc::new(rt::Lambertian::new(rt::Color::new(0.8, 0.8, 0.0)));
     let material_center = Rc::new(rt::Lambertian::new(rt::Color::new(0.7, 0.3, 0.3)));
-    let material_left = Rc::new(rt::Metal::new(rt::Color::new(0.8, 0.8, 0.8)));
-    let material_right = Rc::new(rt::Metal::new(rt::Color::new(0.8, 0.6, 0.2)));
+    let material_left = Rc::new(rt::Metal::new(rt::Color::new(0.8, 0.8, 0.8), 0.3));
+    let material_right = Rc::new(rt::Metal::new(rt::Color::new(0.8, 0.6, 0.2), 1.0));
 
     world.add(Rc::new(rt::Sphere::new(rt::Point::new(0.0, -100.5, -1.0), 100.0, material_ground)));
     world.add(Rc::new(rt::Sphere::new(rt::Point::new(0.0, 0.0, -1.0), 0.5, material_center)));
