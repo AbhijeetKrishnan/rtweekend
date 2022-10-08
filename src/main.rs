@@ -2,10 +2,17 @@ use std::io;
 
 use rtweekend::{Color, Hittable, HittableList, Point, Ray, Sphere, Vec3, INFINITY, Camera, random_double};
 
-pub fn ray_color(r: &Ray, world: &impl Hittable) -> Color {
-    match world.hit(r, 0.0, INFINITY) {
+pub fn ray_color(r: &Ray, world: &impl Hittable, depth: u64) -> Color {
+
+    // If we've exceeded the ray bounce limit, no more light is gathered.
+    if depth <= 0 {
+        return Color::new(0.0, 0.0, 0.0);
+    }
+
+    match world.hit(r, 0.001, INFINITY) {
         Some(rec) => {
-            0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0))
+            let target = rec.p + rec.normal + Vec3::random_in_unit_sphere();
+            0.5 * ray_color(&Ray::new(rec.p, target - rec.p), world, depth - 1)
         }
         None => {
             let unit_direction: Vec3 = r.direction().unit_vector();
@@ -21,6 +28,7 @@ fn main() {
     const IMAGE_WIDTH: u64 = 400;
     const IMAGE_HEIGHT: u64 = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as u64;
     const SAMPLES_PER_PIXEL: u64 = 100;
+    const MAX_DEPTH: u64 = 50;
 
     // World
     let mut world = HittableList::new();
@@ -41,7 +49,7 @@ fn main() {
                 let u = (i as f64 + random_double(0.0, 1.0)) / (IMAGE_WIDTH - 1) as f64;
                 let v = (j as f64 + random_double(0.0, 1.0)) / (IMAGE_HEIGHT - 1) as f64;
                 let r = cam.get_ray(u, v);
-                pixel_color += ray_color(&r, &world);
+                pixel_color += ray_color(&r, &world, MAX_DEPTH);
             }
 
             let stdout = io::stdout();
