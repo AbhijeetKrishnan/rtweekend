@@ -11,7 +11,7 @@ pub fn ray_color(r: &Ray, world: &impl Hittable, depth: u64) -> Color {
 
     match world.hit(r, 0.001, INFINITY) {
         Some(rec) => {
-            let target = rec.p + rec.normal + Vec3::random_in_unit_sphere();
+            let target = rec.p + rec.normal + Vec3::random_unit_vector();
             0.5 * ray_color(&Ray::new(rec.p, target - rec.p), world, depth - 1)
         }
         None => {
