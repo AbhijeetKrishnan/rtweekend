@@ -16,6 +16,8 @@ mod color;
 mod hittable;
 pub use hittable::{HitRecord, Hittable, HittableList, Sphere};
 
+pub struct Degrees(pub f64);
+pub struct Radians(pub f64);
 mod camera;
 pub use camera::Camera;
 
@@ -25,8 +27,8 @@ pub use material::{Dielectric, Lambertian, Material, Metal};
 pub const INFINITY: f64 = std::f64::INFINITY;
 pub const PI: f64 = 3.1415926535897932385;
 
-pub fn degrees_to_radians(degrees: f64) -> f64 {
-    degrees * PI / 180.0
+pub fn degrees_to_radians(degrees: Degrees) -> Radians {
+    Radians(degrees.0 * PI / 180.0)
 }
 
 pub fn random_double(min: f64, max: f64) -> f64 {

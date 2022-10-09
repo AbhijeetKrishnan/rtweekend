@@ -1,5 +1,6 @@
 use std::{io, rc::Rc};
 
+use rt::PI;
 use rtweekend as rt;
 
 pub fn ray_color(r: &rt::Ray, world: &impl rt::Hittable, depth: u64) -> rt::Color {
@@ -30,36 +31,27 @@ fn main() {
     const MAX_DEPTH: u64 = 50;
 
     // World
+    let R = (PI / 4.0).cos();
     let mut world = rt::HittableList::new();
 
-    let material_ground = Rc::new(rt::Lambertian::new(rt::Color::new(0.8, 0.8, 0.0)));
-    let material_center = Rc::new(rt::Lambertian::new(rt::Color::new(0.1, 0.2, 0.5)));
-    let material_left = Rc::new(rt::Dielectric::new(1.5));
-    let material_right = Rc::new(rt::Metal::new(rt::Color::new(0.8, 0.6, 0.2), 1.0));
+    // let material_ground = Rc::new(rt::Lambertian::new(rt::Color::new(0.8, 0.8, 0.0)));
+    // let material_center = Rc::new(rt::Lambertian::new(rt::Color::new(0.1, 0.2, 0.5)));
+    let material_left = Rc::new(rt::Lambertian::new(rt::Color::new(0.0, 0.0, 1.0)));
+    let material_right = Rc::new(rt::Lambertian::new(rt::Color::new(1.0, 0.0, 0.0)));
 
     world.add(Rc::new(rt::Sphere::new(
-        rt::Point::new(0.0, -100.5, -1.0),
-        100.0,
-        material_ground,
-    )));
-    world.add(Rc::new(rt::Sphere::new(
-        rt::Point::new(0.0, 0.0, -1.0),
-        0.5,
-        material_center,
-    )));
-    world.add(Rc::new(rt::Sphere::new(
-        rt::Point::new(-1.0, 0.0, -1.0),
-        0.5,
+        rt::Point::new(-R, 0.0, -1.0),
+        R,
         material_left,
     )));
     world.add(Rc::new(rt::Sphere::new(
-        rt::Point::new(1.0, 0.0, -1.0),
-        0.5,
+        rt::Point::new(R, 0.0, -1.0),
+        R,
         material_right,
     )));
 
     // Camera
-    let cam = rt::Camera::new();
+    let cam = rt::Camera::new(rt::Degrees(90.0), ASPECT_RATIO, 1.0);
 
     // Render
     print!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n");
