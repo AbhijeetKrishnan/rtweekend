@@ -1,6 +1,5 @@
 use std::{io, rc::Rc};
 
-use rt::PI;
 use rtweekend as rt;
 
 pub fn ray_color(r: &rt::Ray, world: &impl rt::Hittable, depth: u64) -> rt::Color {
@@ -31,27 +30,41 @@ fn main() {
     const MAX_DEPTH: u64 = 50;
 
     // World
-    let R = (PI / 4.0).cos();
     let mut world = rt::HittableList::new();
 
-    // let material_ground = Rc::new(rt::Lambertian::new(rt::Color::new(0.8, 0.8, 0.0)));
-    // let material_center = Rc::new(rt::Lambertian::new(rt::Color::new(0.1, 0.2, 0.5)));
-    let material_left = Rc::new(rt::Lambertian::new(rt::Color::new(0.0, 0.0, 1.0)));
-    let material_right = Rc::new(rt::Lambertian::new(rt::Color::new(1.0, 0.0, 0.0)));
+    let material_ground = Rc::new(rt::Lambertian::new(rt::Color::new(0.8, 0.8, 0.0)));
+    let material_center = Rc::new(rt::Lambertian::new(rt::Color::new(0.1, 0.2, 0.5)));
+    let material_left = Rc::new(rt::Dielectric::new(1.5));
+    let material_right = Rc::new(rt::Metal::new(rt::Color::new(0.8, 0.6, 0.2), 0.0));
 
-    world.add(Rc::new(rt::Sphere::new(
-        rt::Point::new(-R, 0.0, -1.0),
-        R,
-        material_left,
+    world.add(Box::new(rt::Sphere::new(
+        rt::Point::new(0.0, -100.5, -1.0),
+        100.0,
+        Rc::clone(&material_ground) as Rc<dyn rt::Material>,
     )));
-    world.add(Rc::new(rt::Sphere::new(
-        rt::Point::new(R, 0.0, -1.0),
-        R,
-        material_right,
+    world.add(Box::new(rt::Sphere::new(
+        rt::Point::new(0.0, 0.0, -1.0),
+        0.5,
+        Rc::clone(&material_center) as Rc<dyn rt::Material>,
+    )));
+    world.add(Box::new(rt::Sphere::new(
+        rt::Point::new(-1.0, 0.0, -1.0),
+        0.5,
+        Rc::clone(&material_left) as Rc<dyn rt::Material>,
+    )));
+    world.add(Box::new(rt::Sphere::new(
+        rt::Point::new(-1.0, 0.0, -1.0),
+        -0.45,
+        Rc::clone(&material_left) as Rc<dyn rt::Material>,
+    )));
+    world.add(Box::new(rt::Sphere::new(
+        rt::Point::new(1.0, 0.0, -1.0),
+        0.5,
+        Rc::clone(&material_right) as Rc<dyn rt::Material>,
     )));
 
     // Camera
-    let cam = rt::Camera::new(rt::Degrees(90.0), ASPECT_RATIO, 1.0);
+    let cam = rt::Camera::new(rt::Point::new(-2.0, 2.0, 1.0), rt::Point::new(0.0, 0.0, -1.0), rt::Vec3::new(0.0, 1.0, 0.0), rt::Degrees(90.0), ASPECT_RATIO, 1.0);
 
     // Render
     print!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n");
