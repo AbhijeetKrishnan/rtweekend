@@ -2,6 +2,7 @@ use crate::{clamp, Color};
 use std::io::Write;
 
 impl Color {
+
     pub fn write_color(&self, out: &mut impl Write, samples_per_pixel: u64) {
         let r = self.x();
         let g = self.y();

@@ -1,8 +1,9 @@
-use std::io;
+use std::{io, rc::Rc};
 
 use rtweekend as rt;
+use rt::Hittable;
 
-pub fn ray_color(r: &rt::Ray, world: &impl rt::Hittable, depth: u64) -> rt::Color {
+pub fn ray_color(r: &rt::Ray, world: &rt::HittableList, depth: u64) -> rt::Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if depth <= 0 {
         return rt::Color::new(0.0, 0.0, 0.0);
@@ -21,50 +22,105 @@ pub fn ray_color(r: &rt::Ray, world: &impl rt::Hittable, depth: u64) -> rt::Colo
     }
 }
 
+fn random_scene() -> rt::HittableList {
+    let mut world = rt::HittableList::new();
+    let ground_material = Rc::new(rt::Lambertian::new(rt::Color::new(0.5, 0.5, 0.5)));
+    world.add(Box::new(rt::Sphere::new(
+        rt::Point::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Rc::clone(&ground_material) as Rc<dyn rt::Material>,
+    )));
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = rt::random_double(0.0, 1.0);
+            let center = rt::Point::new(a as f64 + 0.9 * rt::random_double(0.0, 1.0), 0.2, b as f64 + 0.9 * rt::random_double(0.0, 1.0));
+
+            if (center - rt::Point::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                let sphere_material: Rc<dyn rt::Material>;
+
+                if choose_mat < 0.8 {
+                    // diffuse
+                    let albedo = rt::Color::random(0.0, 1.0) * rt::Color::random(0.0, 1.0);
+                    sphere_material = Rc::new(rt::Lambertian::new(albedo));
+                    world.add(Box::new(rt::Sphere::new(
+                        center,
+                        0.2,
+                        Rc::clone(&sphere_material) as Rc<dyn rt::Material>,
+                    )));
+                } else if choose_mat < 0.95 {
+                    // metal
+                    let albedo = rt::Color::random(0.5, 1.0);
+                    let fuzz = rt::random_double(0.0, 0.5);
+                    sphere_material = Rc::new(rt::Metal::new(albedo, fuzz));
+                    world.add(Box::new(rt::Sphere::new(
+                        center,
+                        0.2,
+                        Rc::clone(&sphere_material) as Rc<dyn rt::Material>,
+                    )));
+                } else {
+                    // glass
+                    sphere_material = Rc::new(rt::Dielectric::new(1.5));
+                    world.add(Box::new(rt::Sphere::new(
+                        center,
+                        0.2,
+                        Rc::clone(&sphere_material) as Rc<dyn rt::Material>,
+                    )));
+                }
+            }
+        }
+    }
+
+    let material1 = Rc::new(rt::Dielectric::new(1.5));
+    world.add(Box::new(rt::Sphere::new(
+        rt::Point::new(0.0, 1.0, 0.0),
+        1.0,
+        Rc::clone(&material1) as Rc<dyn rt::Material>,
+    )));
+
+    let material2 = Rc::new(rt::Lambertian::new(rt::Color::new(0.4, 0.2, 0.1)));
+    world.add(Box::new(rt::Sphere::new(
+        rt::Point::new(-4.0, 1.0, 0.0),
+        1.0,
+        Rc::clone(&material2) as Rc<dyn rt::Material>,
+    )));
+
+    let material3 = Rc::new(rt::Metal::new(rt::Color::new(0.7, 0.6, 0.5), 0.0));
+    world.add(Box::new(rt::Sphere::new(
+        rt::Point::new(4.0, 1.0, 0.0),
+        1.0,
+        Rc::clone(&material3) as Rc<dyn rt::Material>,
+    )));
+
+    world
+}
+
 fn main() {
     // Image
-    const ASPECT_RATIO: f64 = 16.0 / 9.0;
-    const IMAGE_WIDTH: u64 = 400;
+    const ASPECT_RATIO: f64 = 3.0 / 2.0;
+    const IMAGE_WIDTH: u64 = 1200;
     const IMAGE_HEIGHT: u64 = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as u64;
-    const SAMPLES_PER_PIXEL: u64 = 100;
+    const SAMPLES_PER_PIXEL: u64 = 500;
     const MAX_DEPTH: u64 = 50;
 
     // World
-    let material_ground = rt::Lambertian::new(rt::Color::new(0.8, 0.8, 0.0));
-    let material_center = rt::Lambertian::new(rt::Color::new(0.1, 0.2, 0.5));
-    let material_left = rt::Dielectric::new(1.5);
-    let material_right = rt::Metal::new(rt::Color::new(0.8, 0.6, 0.2), 0.0);
-
-    let mut world = rt::HittableList::new();
-
-    world.add(Box::new(rt::Sphere::new(
-        rt::Point::new(0.0, -100.5, -1.0),
-        100.0,
-        &material_ground,
-    )));
-    world.add(Box::new(rt::Sphere::new(
-        rt::Point::new(0.0, 0.0, -1.0),
-        0.5,
-        &material_center,
-    )));
-    world.add(Box::new(rt::Sphere::new(
-        rt::Point::new(-1.0, 0.0, -1.0),
-        0.5,
-        &material_left,
-    )));
-    world.add(Box::new(rt::Sphere::new(
-        rt::Point::new(-1.0, 0.0, -1.0),
-        -0.45,
-        &material_left,
-    )));
-    world.add(Box::new(rt::Sphere::new(
-        rt::Point::new(1.0, 0.0, -1.0),
-        0.5,
-        &material_right,
-    )));
+    let world = random_scene();
 
     // Camera
-    let cam = rt::Camera::new(rt::Point::new(-2.0, 2.0, 1.0), rt::Point::new(0.0, 0.0, -1.0), rt::Vec3::new(0.0, 1.0, 0.0), rt::Degrees(90.0), ASPECT_RATIO, 1.0);
+    let lookfrom = rt::Point::new(13.0, 2.0, 3.0);
+    let lookat = rt::Point::new(0.0, 0.0, 0.0);
+    let vup = rt::Vec3::new(0.0, 1.0, 0.0);
+    let dist_to_focus = 10.0;
+    let aperture = 0.1;
+    let cam = rt::Camera::new(
+        lookfrom,
+        lookat,
+        vup,
+        rt::Degrees(20.0),
+        ASPECT_RATIO,
+        aperture,
+        dist_to_focus,
+    );
 
     // Render
     print!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n");

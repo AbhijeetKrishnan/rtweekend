@@ -1,6 +1,5 @@
 use std::default::Default;
-use std::fmt;
-use std::ops;
+use std::{fmt, ops};
 
 use crate::random_double;
 
@@ -101,6 +100,16 @@ impl Vec3 {
         let r_out_perp = etai_over_etat * (uv + cos_theta * n);
         let r_out_parallel = -(1.0 - r_out_perp.length_squared()).abs().sqrt() * n;
         r_out_perp + r_out_parallel
+    }
+
+    pub fn random_in_unit_disk() -> Vec3 {
+        loop {
+            let p = Vec3::new(crate::random_double(-1.0, 1.0), crate::random_double(-1.0, 1.0), 0.0);
+            if p.length_squared() >= 1.0 {
+                continue;
+            }
+            return p;
+        }
     }
 }
 
