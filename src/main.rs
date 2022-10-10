@@ -1,7 +1,7 @@
 use std::{io, rc::Rc};
 
-use rtweekend as rt;
 use rt::Hittable;
+use rtweekend as rt;
 
 pub fn ray_color(r: &rt::Ray, world: &rt::HittableList, depth: u64) -> rt::Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
@@ -34,7 +34,11 @@ fn random_scene() -> rt::HittableList {
     for a in -11..11 {
         for b in -11..11 {
             let choose_mat = rt::random_double(0.0, 1.0);
-            let center = rt::Point::new(a as f64 + 0.9 * rt::random_double(0.0, 1.0), 0.2, b as f64 + 0.9 * rt::random_double(0.0, 1.0));
+            let center = rt::Point::new(
+                a as f64 + 0.9 * rt::random_double(0.0, 1.0),
+                0.2,
+                b as f64 + 0.9 * rt::random_double(0.0, 1.0),
+            );
 
             if (center - rt::Point::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 let sphere_material: Rc<dyn rt::Material>;
