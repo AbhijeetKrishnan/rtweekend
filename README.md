@@ -7,10 +7,6 @@ more idiomatic Rust. The translation was otherwise fairly straightforward.
 * Returning an `Option<T>` instead of `-1` for cases like `hit` when we don't hit an object and don't have a value to return. This also gets rid of having to pass a reference to the output variable and assigning it within a function.
 * Replacing `std::shared_ptr` with `std::rc::Rc` (thank you to pie_flavor#7868 from [The Rust Programming Language Discord](https://discord.gg/rust-lang) for helping me understand lifetimes better 😊)
 
-Here are some images that were rendered due to bugs in my code.
-
-
-
 ## Future Work
 
 * [ ] Parallelism (rendering the final scene takes a *huge* amount of time)
