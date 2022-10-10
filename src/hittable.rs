@@ -1,16 +1,14 @@
-use std::rc::Rc;
-
 use crate::{Material, Point, Ray, Vec3};
 
-pub struct HitRecord {
+pub struct HitRecord<'a> {
     pub p: Point,
     pub normal: Vec3,
-    pub mat_ptr: Rc<dyn Material>,
+    pub mat_ptr: &'a dyn Material,
     t: f64,
     pub front_face: bool,
 }
 
-impl HitRecord {
+impl HitRecord<'_> {
     pub fn get_face_normal(r: &Ray, outward_normal: Vec3) -> (bool, Vec3) {
         let front_face = Vec3::dot(r.direction(), &outward_normal) < 0.0;
         let normal = if front_face {
@@ -26,14 +24,14 @@ pub trait Hittable {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
 }
 
-pub struct Sphere {
+pub struct Sphere<'a> {
     center: Point,
     radius: f64,
-    mat_ptr: Rc<dyn Material>,
+    mat_ptr: &'a dyn Material,
 }
 
-impl Sphere {
-    pub fn new(cen: Point, r: f64, m: Rc<dyn Material>) -> Sphere {
+impl<'a> Sphere<'a> {
+    pub fn new(cen: Point, r: f64, m: &'a dyn Material) -> Sphere<'a> {
         Sphere {
             center: cen,
             radius: r,
@@ -42,7 +40,7 @@ impl Sphere {
     }
 }
 
-impl Hittable for Sphere {
+impl<'a> Hittable for Sphere<'a> {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = r.origin() - self.center;
         let a = r.direction().length_squared();
@@ -72,23 +70,23 @@ impl Hittable for Sphere {
         Some(HitRecord {
             p,
             normal,
-            mat_ptr: Rc::clone(&self.mat_ptr),
+            mat_ptr: self.mat_ptr,
             t,
             front_face,
         })
     }
 }
 
-pub struct HittableList {
-    objects: Vec<Box<dyn Hittable>>,
+pub struct HittableList<'a> {
+    objects: Vec<Box<dyn Hittable + 'a>>,
 }
 
-impl HittableList {
-    pub fn new() -> HittableList {
+impl<'a> HittableList<'a> {
+    pub fn new() -> HittableList<'a> {
         HittableList { objects: vec![] }
     }
 
-    pub fn add(&mut self, object: Box<dyn Hittable>) {
+    pub fn add(&mut self, object: Box<dyn Hittable + 'a>) {
         self.objects.push(object);
     }
 
@@ -97,7 +95,7 @@ impl HittableList {
     }
 }
 
-impl Hittable for HittableList {
+impl Hittable for HittableList<'_> {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let mut temp_rec: Option<HitRecord> = None;
         let mut closest_so_far = t_max;

@@ -1,4 +1,4 @@
-use std::{io, rc::Rc};
+use std::io;
 
 use rtweekend as rt;
 
@@ -30,37 +30,37 @@ fn main() {
     const MAX_DEPTH: u64 = 50;
 
     // World
-    let mut world = rt::HittableList::new();
+    let material_ground = rt::Lambertian::new(rt::Color::new(0.8, 0.8, 0.0));
+    let material_center = rt::Lambertian::new(rt::Color::new(0.1, 0.2, 0.5));
+    let material_left = rt::Dielectric::new(1.5);
+    let material_right = rt::Metal::new(rt::Color::new(0.8, 0.6, 0.2), 0.0);
 
-    let material_ground = Rc::new(rt::Lambertian::new(rt::Color::new(0.8, 0.8, 0.0)));
-    let material_center = Rc::new(rt::Lambertian::new(rt::Color::new(0.1, 0.2, 0.5)));
-    let material_left = Rc::new(rt::Dielectric::new(1.5));
-    let material_right = Rc::new(rt::Metal::new(rt::Color::new(0.8, 0.6, 0.2), 0.0));
+    let mut world = rt::HittableList::new();
 
     world.add(Box::new(rt::Sphere::new(
         rt::Point::new(0.0, -100.5, -1.0),
         100.0,
-        Rc::clone(&material_ground) as Rc<dyn rt::Material>,
+        &material_ground,
     )));
     world.add(Box::new(rt::Sphere::new(
         rt::Point::new(0.0, 0.0, -1.0),
         0.5,
-        Rc::clone(&material_center) as Rc<dyn rt::Material>,
+        &material_center,
     )));
     world.add(Box::new(rt::Sphere::new(
         rt::Point::new(-1.0, 0.0, -1.0),
         0.5,
-        Rc::clone(&material_left) as Rc<dyn rt::Material>,
+        &material_left,
     )));
     world.add(Box::new(rt::Sphere::new(
         rt::Point::new(-1.0, 0.0, -1.0),
         -0.45,
-        Rc::clone(&material_left) as Rc<dyn rt::Material>,
+        &material_left,
     )));
     world.add(Box::new(rt::Sphere::new(
         rt::Point::new(1.0, 0.0, -1.0),
         0.5,
-        Rc::clone(&material_right) as Rc<dyn rt::Material>,
+        &material_right,
     )));
 
     // Camera
