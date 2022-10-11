@@ -111,11 +111,11 @@ fn main() {
     const MAX_DEPTH: u64 = 5; // orig = 50
 
     // Buffer
-    let pixel_buffer: Arc<Vec<Vec<rt::Color>>> =
-        Arc::new(vec![
+    let pixel_buffer =
+        Arc::new(Mutex::new(vec![
             vec![rt::Color::new(0.0, 0.0, 0.0); IMAGE_WIDTH];
             IMAGE_HEIGHT
-        ]);
+        ]));
 
     // World
     let world = Arc::new(random_scene());
@@ -144,7 +144,7 @@ fn main() {
         eprint!("\rScanlines remaining: {j} ");
         for i in 0..IMAGE_WIDTH {
             // start a thread
-            let lock = Mutex::new(pixel_buffer[j][i]);
+            let pixel_buffer_t = Arc::clone(&pixel_buffer);
             let camera_t = Arc::clone(&cam);
             let world_t = Arc::clone(&world);
             let handle = thread::spawn(move || {
@@ -154,8 +154,8 @@ fn main() {
                     let r = camera_t.get_ray(u, v);
                     let ray_color = ray_color(&r, &world_t, MAX_DEPTH);
                     // acquire lock on curr pixel colour and update it
-                    let mut curr_pixel = lock.lock().unwrap();
-                    *curr_pixel += ray_color;
+                    let mut pixel_buffer = pixel_buffer_t.lock().unwrap();
+                    pixel_buffer[j][i] += ray_color;
                 }
             });
             handles.push(handle);
@@ -166,6 +166,6 @@ fn main() {
         handle.join().unwrap();
     }
 
-    rt::draw_buffer_to_ppm(Arc::try_unwrap(pixel_buffer).unwrap(), SAMPLES_PER_PIXEL);
+    rt::draw_buffer_to_ppm(pixel_buffer.lock().unwrap().to_vec(), SAMPLES_PER_PIXEL);
     eprintln!("\nDone");
 }
