@@ -1,11 +1,14 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{Material, Point, Ray, Vec3};
+
+pub type MaterialPtr = Arc<dyn Material + Send + Sync>;
+pub type HittableObj = Box<dyn Hittable + Send + Sync>;
 
 pub struct HitRecord {
     pub p: Point,
     pub normal: Vec3,
-    pub mat_ptr: Rc<dyn Material>,
+    pub mat_ptr: MaterialPtr,
     t: f64,
     pub front_face: bool,
 }
@@ -29,11 +32,11 @@ pub trait Hittable {
 pub struct Sphere {
     center: Point,
     radius: f64,
-    mat_ptr: Rc<dyn Material>,
+    mat_ptr: MaterialPtr,
 }
 
 impl Sphere {
-    pub fn new(cen: Point, r: f64, m: Rc<dyn Material>) -> Sphere {
+    pub fn new(cen: Point, r: f64, m: MaterialPtr) -> Sphere {
         Sphere {
             center: cen,
             radius: r,
@@ -42,7 +45,7 @@ impl Sphere {
     }
 }
 
-impl<'a> Hittable for Sphere {
+impl Hittable for Sphere {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = r.origin() - self.center;
         let a = r.direction().length_squared();
@@ -72,7 +75,7 @@ impl<'a> Hittable for Sphere {
         Some(HitRecord {
             p,
             normal,
-            mat_ptr: Rc::clone(&self.mat_ptr),
+            mat_ptr: Arc::clone(&self.mat_ptr),
             t,
             front_face,
         })
@@ -80,7 +83,7 @@ impl<'a> Hittable for Sphere {
 }
 
 pub struct HittableList {
-    objects: Vec<Box<dyn Hittable>>,
+    objects: Vec<HittableObj>,
 }
 
 impl HittableList {
@@ -88,7 +91,7 @@ impl HittableList {
         HittableList { objects: vec![] }
     }
 
-    pub fn add(&mut self, object: Box<dyn Hittable>) {
+    pub fn add(&mut self, object: HittableObj) {
         self.objects.push(object);
     }
 

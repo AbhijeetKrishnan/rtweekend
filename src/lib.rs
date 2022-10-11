@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate impl_ops;
 
+use std::io;
 use rand;
 
 mod vec3;
@@ -14,7 +15,7 @@ pub use ray::Ray;
 mod color;
 
 mod hittable;
-pub use hittable::{HitRecord, Hittable, HittableList, Sphere};
+pub use hittable::{HitRecord, Hittable, HittableList, Sphere, HittableObj, MaterialPtr};
 
 pub struct Degrees(pub f64);
 pub struct Radians(pub f64);
@@ -43,4 +44,16 @@ pub fn clamp(x: f64, min: f64, max: f64) -> f64 {
         return max;
     }
     return x;
+}
+
+pub fn draw_buffer_to_ppm(buffer: Vec<Vec<Color>>, samples_per_pixel: u64) {
+    for j in (0..buffer.len()).rev() {
+        for i in 0..buffer[0].len() {
+            let pixel_color = buffer[j][i];
+            let stdout = io::stdout();
+            let mut handle = stdout.lock();
+
+            pixel_color.write_color(&mut handle, samples_per_pixel);
+        }
+    }
 }

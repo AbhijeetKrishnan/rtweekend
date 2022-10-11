@@ -142,8 +142,8 @@ impl ops::IndexMut<u8> for Vec3 {
     }
 }
 
-impl_op_ex!(+= |v: &mut Vec3, rhs: Vec3| { v.x += rhs.x; v.y += rhs.y; v.z += rhs.z });
-impl_op_ex!(-= |v: &mut Vec3, rhs: Vec3| { v.x -= rhs.x; v.y -= rhs.y; v.z -= rhs.z });
+impl_op_ex!(+= |v: &mut Vec3, rhs: &Vec3| { v.x += rhs.x; v.y += rhs.y; v.z += rhs.z });
+impl_op_ex!(-= |v: &mut Vec3, rhs: &Vec3| { v.x -= rhs.x; v.y -= rhs.y; v.z -= rhs.z });
 impl_op_ex!(*= |v: &mut Vec3, rhs: f64| { v.x *= rhs; v.y *= rhs; v.z *= rhs });
 impl_op_ex!(/= |v: &mut Vec3, rhs: f64| { v.x /= rhs; v.y /= rhs; v.z /= rhs });
 
