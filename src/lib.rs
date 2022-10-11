@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate impl_ops;
 
-use std::io;
 use rand;
+use std::io;
 
 mod vec3;
 pub use vec3::Vec3;
@@ -15,7 +15,7 @@ pub use ray::Ray;
 mod color;
 
 mod hittable;
-pub use hittable::{HitRecord, Hittable, HittableList, Sphere, HittableObj, MaterialPtr};
+pub use hittable::{HitRecord, Hittable, HittableList, HittableObj, MaterialPtr, Sphere};
 
 pub struct Degrees(pub f64);
 pub struct Radians(pub f64);

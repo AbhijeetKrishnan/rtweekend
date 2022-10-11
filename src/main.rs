@@ -1,5 +1,5 @@
 use std::{
-    sync::{Mutex, Arc},
+    sync::{Arc, Mutex},
     thread,
 };
 
@@ -111,7 +111,11 @@ fn main() {
     const MAX_DEPTH: u64 = 5; // orig = 50
 
     // Buffer
-    let pixel_buffer: Arc<Vec<Vec<rt::Color>>> = Arc::new(vec![vec![rt::Color::new(0.0, 0.0, 0.0); IMAGE_WIDTH]; IMAGE_HEIGHT]);
+    let pixel_buffer: Arc<Vec<Vec<rt::Color>>> =
+        Arc::new(vec![
+            vec![rt::Color::new(0.0, 0.0, 0.0); IMAGE_WIDTH];
+            IMAGE_HEIGHT
+        ]);
 
     // World
     let world = Arc::new(random_scene());
@@ -139,12 +143,12 @@ fn main() {
     for j in (0..IMAGE_HEIGHT).rev() {
         eprint!("\rScanlines remaining: {j} ");
         for i in 0..IMAGE_WIDTH {
-            for _ in 0..SAMPLES_PER_PIXEL {
-                // start a thread
-                let lock = Mutex::new(pixel_buffer[j][i]);
-                let camera_t = Arc::clone(&cam);
-                let world_t = Arc::clone(&world);
-                let handle = thread::spawn(move || {
+            // start a thread
+            let lock = Mutex::new(pixel_buffer[j][i]);
+            let camera_t = Arc::clone(&cam);
+            let world_t = Arc::clone(&world);
+            let handle = thread::spawn(move || {
+                for _ in 0..SAMPLES_PER_PIXEL {
                     let u = (i as f64 + rt::random_double(0.0, 1.0)) / (IMAGE_WIDTH - 1) as f64;
                     let v = (j as f64 + rt::random_double(0.0, 1.0)) / (IMAGE_HEIGHT - 1) as f64;
                     let r = camera_t.get_ray(u, v);
@@ -152,16 +156,16 @@ fn main() {
                     // acquire lock on curr pixel colour and update it
                     let mut curr_pixel = lock.lock().unwrap();
                     *curr_pixel += ray_color;
-                });
-                handles.push(handle);
-            }
+                }
+            });
+            handles.push(handle);
         }
     }
 
     for handle in handles {
         handle.join().unwrap();
     }
-    
+
     rt::draw_buffer_to_ppm(Arc::try_unwrap(pixel_buffer).unwrap(), SAMPLES_PER_PIXEL);
     eprintln!("\nDone");
 }
