@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex};
 
+use clap::Parser;
 use threadpool::ThreadPool;
 
 use rt::Hittable;
@@ -101,16 +102,24 @@ fn random_scene() -> rt::HittableList {
     world
 }
 
+#[derive(Parser, Debug)]
+#[command(author = "Abhijeet Krishnan <abhijeet.krishnan@gmail.com>", version = "0.1.0", about, long_about = None)]
+struct Args {
+    #[arg(long, default_value_t = 4)]
+    num_threads: usize,
+}
+
 fn main() {
-    const NUM_THREADS: usize = 200;
-    let pool = ThreadPool::new(NUM_THREADS);
+    let args = Args::parse();
+
+    let pool = ThreadPool::new(args.num_threads);
 
     // Image
     const ASPECT_RATIO: f64 = 3.0 / 2.0;
-    const IMAGE_WIDTH: usize = 1200; // orig = 1200
+    const IMAGE_WIDTH: usize = 1200;
     const IMAGE_HEIGHT: usize = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as usize;
-    const SAMPLES_PER_PIXEL: u64 = 500; // orig = 500
-    const MAX_DEPTH: u64 = 50; // orig = 50
+    const SAMPLES_PER_PIXEL: u64 = 500;
+    const MAX_DEPTH: u64 = 50;
 
     let counter: Arc<Mutex<u64>> = Arc::new(Mutex::new(0));
 
@@ -170,7 +179,7 @@ fn main() {
                 let completion_pct =
                     (pixels_completed as f64) / (IMAGE_WIDTH * IMAGE_HEIGHT) as f64 * 100.0;
                 eprint!(
-                    "\rWrote pixel {j:<3} {i:<4} Pixels completed: {:>6}/{} ({:.2}%)",
+                    "\rPixels completed: {:>6}/{} ({:.2}%)",
                     pixels_completed,
                     IMAGE_WIDTH * IMAGE_HEIGHT,
                     completion_pct
