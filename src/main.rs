@@ -1,7 +1,6 @@
-use std::{
-    sync::{Arc, Mutex},
-    thread,
-};
+use std::sync::{Arc, Mutex};
+
+use threadpool::ThreadPool;
 
 use rt::Hittable;
 use rtweekend as rt;
@@ -103,19 +102,26 @@ fn random_scene() -> rt::HittableList {
 }
 
 fn main() {
+    const NUM_THREADS: usize = 200;
+    let pool = ThreadPool::new(NUM_THREADS);
+
     // Image
     const ASPECT_RATIO: f64 = 3.0 / 2.0;
-    const IMAGE_WIDTH: usize = 200; // orig = 1200
+    const IMAGE_WIDTH: usize = 1200; // orig = 1200
     const IMAGE_HEIGHT: usize = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as usize;
-    const SAMPLES_PER_PIXEL: u64 = 50; // orig = 500
-    const MAX_DEPTH: u64 = 5; // orig = 50
+    const SAMPLES_PER_PIXEL: u64 = 500; // orig = 500
+    const MAX_DEPTH: u64 = 50; // orig = 50
+
+    let counter: Arc<Mutex<u64>> = Arc::new(Mutex::new(0));
 
     // Buffer
-    let pixel_buffer =
-        Arc::new(Mutex::new(vec![
-            vec![rt::Color::new(0.0, 0.0, 0.0); IMAGE_WIDTH];
-            IMAGE_HEIGHT
-        ]));
+    let pixel_buffer = Arc::new(Mutex::new(vec![
+        vec![
+            rt::Color::new(0.0, 0.0, 0.0);
+            IMAGE_WIDTH
+        ];
+        IMAGE_HEIGHT
+    ]));
 
     // World
     let world = Arc::new(random_scene());
@@ -137,34 +143,43 @@ fn main() {
     ));
 
     // Render
-    let mut handles = vec![];
     print!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n");
 
     for j in (0..IMAGE_HEIGHT).rev() {
-        eprint!("\rScanlines remaining: {j} ");
         for i in 0..IMAGE_WIDTH {
             // start a thread
+            let ctr_t = Arc::clone(&counter);
             let pixel_buffer_t = Arc::clone(&pixel_buffer);
             let camera_t = Arc::clone(&cam);
             let world_t = Arc::clone(&world);
-            let handle = thread::spawn(move || {
+            pool.execute(move || {
                 for _ in 0..SAMPLES_PER_PIXEL {
                     let u = (i as f64 + rt::random_double(0.0, 1.0)) / (IMAGE_WIDTH - 1) as f64;
                     let v = (j as f64 + rt::random_double(0.0, 1.0)) / (IMAGE_HEIGHT - 1) as f64;
                     let r = camera_t.get_ray(u, v);
                     let ray_color = ray_color(&r, &world_t, MAX_DEPTH);
+
                     // acquire lock on curr pixel colour and update it
                     let mut pixel_buffer = pixel_buffer_t.lock().unwrap();
                     pixel_buffer[j][i] += ray_color;
                 }
+                let mut counter = ctr_t.lock().unwrap();
+                *counter += 1;
+
+                let pixels_completed = *counter;
+                let completion_pct =
+                    (pixels_completed as f64) / (IMAGE_WIDTH * IMAGE_HEIGHT) as f64 * 100.0;
+                eprint!(
+                    "\rWrote pixel {j:<3} {i:<4} Pixels completed: {:>6}/{} ({:.2}%)",
+                    pixels_completed,
+                    IMAGE_WIDTH * IMAGE_HEIGHT,
+                    completion_pct
+                );
             });
-            handles.push(handle);
         }
     }
 
-    for handle in handles {
-        handle.join().unwrap();
-    }
+    pool.join();
 
     rt::draw_buffer_to_ppm(pixel_buffer.lock().unwrap().to_vec(), SAMPLES_PER_PIXEL);
     eprintln!("\nDone");
